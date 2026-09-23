@@ -12,6 +12,7 @@
       <span>待确认 {{ stats.pending }}</span>
       <span>已同意 {{ stats.accepted }}</span>
       <span>已完成 {{ stats.completed }}</span>
+      <span v-if="pendingReviewCount">待我评价 {{ pendingReviewCount }}</span>
     </div>
 
     <div class="segmented">
@@ -35,6 +36,7 @@
         @accept="exchangeStore.accept"
         @reject="exchangeStore.reject"
         @complete="completeExchange"
+        @review-submitted="handleReviewSubmitted"
       />
     </div>
     <EmptyState
@@ -57,10 +59,12 @@ import { useExchangeStats } from '@/hooks/useExchangeStats';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
+import { useReviewStore } from '@/stores/reviewStore';
 
 const authStore = useAuthStore();
 const itemStore = useItemStore();
 const exchangeStore = useExchangeStore();
+const reviewStore = useReviewStore();
 const tab = ref<'sent' | 'received'>('sent');
 
 const mine = computed(() => {
@@ -72,10 +76,19 @@ const mine = computed(() => {
 });
 const visibleExchanges = computed(() => mine.value);
 const stats = useExchangeStats(() => exchangeStore.exchanges);
+const pendingReviewCount = computed(() =>
+  reviewStore.pendingCount(exchangeStore.exchanges, authStore.currentUser?.id),
+);
 
 const completeExchange = async (id: string) => {
   await exchangeStore.complete(id);
   itemStore.items = itemStore.items.map((item) => item);
+};
+
+// 评价与信用分在 reviewApi 事务里一起落库；提交成功后刷新用户快照，
+// 让信用分变化和“已评价”状态在本页立即生效。
+const handleReviewSubmitted = async () => {
+  await authStore.hydrate();
 };
 
 void ExchangeStatus.PENDING;

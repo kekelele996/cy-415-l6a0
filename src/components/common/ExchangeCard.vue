@@ -17,6 +17,14 @@
       </div>
     </div>
     <p>{{ exchange.message || formatStatusMessage(exchange.status) }}</p>
+
+    <ExchangeReview
+      v-if="exchange.status === ExchangeStatus.COMPLETED && isParticipant"
+      :exchange="exchange"
+      :users="users"
+      @submitted="$emit('review-submitted')"
+    />
+
     <footer>
       <span v-if="fromUser && toUser">{{ fromUser.nickname }} → {{ toUser.nickname }}</span>
       <div v-if="canOperate" class="exchange-card__actions">
@@ -37,6 +45,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import ExchangeReview from '@/components/common/ExchangeReview.vue';
 import { ExchangeStatus } from '@/constants/exchange';
 import type { Exchange } from '@/models/exchange';
 import type { Item } from '@/models/item';
@@ -54,6 +63,7 @@ defineEmits<{
   accept: [id: string];
   reject: [id: string];
   complete: [id: string];
+  'review-submitted': [];
 }>();
 
 const authStore = useAuthStore();
@@ -61,6 +71,11 @@ const fromItem = computed(() => props.items.find((item) => item.id === props.exc
 const toItem = computed(() => props.items.find((item) => item.id === props.exchange.to_item_id));
 const fromUser = computed(() => props.users.find((user) => user.id === props.exchange.from_user_id));
 const toUser = computed(() => props.users.find((user) => user.id === props.exchange.to_user_id));
+const isParticipant = computed(
+  () =>
+    authStore.currentUser?.id === props.exchange.from_user_id ||
+    authStore.currentUser?.id === props.exchange.to_user_id,
+);
 const canOperate = computed(
   () =>
     authStore.currentUser?.id === props.exchange.to_user_id ||

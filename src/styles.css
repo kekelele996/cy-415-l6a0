@@ -594,6 +594,139 @@ textarea {
   gap: 8px;
 }
 
+.exchange-review {
+  display: grid;
+  gap: 12px;
+  border-top: 1px dashed var(--rs-border);
+  padding-top: 14px;
+}
+
+.exchange-review__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.exchange-review__head small,
+.exchange-review__hint {
+  color: color-mix(in oklch, var(--rs-text), transparent 40%);
+  font-size: 0.8rem;
+}
+
+.exchange-review__list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.exchange-review__item {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--rs-border);
+  border-radius: 7px;
+  padding: 12px;
+  background: color-mix(in oklch, var(--rs-primary), transparent 92%);
+}
+
+.exchange-review__item--locked {
+  border-style: dashed;
+}
+
+.exchange-review__who {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: color-mix(in oklch, var(--rs-text), transparent 20%);
+}
+
+.exchange-review__form {
+  display: grid;
+  gap: 12px;
+}
+
+.exchange-review__target {
+  font-size: 0.9rem;
+}
+
+.exchange-review__stars {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.exchange-review__stars button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--rs-border);
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in oklch, var(--rs-text), transparent 55%);
+  font-size: 1.3rem;
+}
+
+.exchange-review__stars button.is-active {
+  border-color: transparent;
+  background: var(--rs-accent);
+  color: #fffaf0;
+}
+
+.exchange-review__delta {
+  margin-left: 6px;
+  font-size: 0.82rem;
+  color: var(--rs-primary);
+}
+
+.exchange-review__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.exchange-review__tags button {
+  border: 1px solid var(--rs-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--rs-text);
+  font-size: 0.82rem;
+}
+
+.exchange-review__tags button.is-active {
+  border-color: transparent;
+  background: var(--rs-primary);
+  color: var(--rs-surface);
+}
+
+.review-content {
+  display: grid;
+  gap: 6px;
+}
+
+.review-content__stars {
+  color: var(--rs-accent);
+  letter-spacing: 2px;
+}
+
+.review-content__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.review-content__tag {
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: color-mix(in oklch, var(--rs-primary), transparent 86%);
+  color: var(--rs-primary);
+  font-size: 0.76rem;
+}
+
+.review-content__time {
+  color: color-mix(in oklch, var(--rs-text), transparent 45%);
+}
+
 .profile-side {
   display: grid;
   gap: 18px;
@@ -662,6 +795,7 @@ textarea {
   .detail-layout,
   .profile-layout,
   .exchange-card__items,
+  .exchange-review__list,
   .detail-list {
     grid-template-columns: 1fr;
   }

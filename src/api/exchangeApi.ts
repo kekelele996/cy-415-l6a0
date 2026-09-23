@@ -17,6 +17,30 @@ const seedExchanges: Exchange[] = [
     created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
     updated_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
   },
+  {
+    // 已完成、尚未互评：用于演示“完成后双方各评一次”的完整流程。
+    id: 'exchange_seed_pending_review',
+    from_user_id: 'user_me',
+    to_user_id: 'user_chen',
+    from_item_id: 'item_mug',
+    to_item_id: 'item_plant',
+    status: ExchangeStatus.COMPLETED,
+    message: '马克杯换龟背竹，已在地铁站当面完成交换。',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 20).toISOString(),
+  },
+  {
+    // 已完成、双方都已评价：对应 reviewApi 中的 seedReviews，评价已公开。
+    id: 'exchange_seed_rated',
+    from_user_id: 'user_lin',
+    to_user_id: 'user_chen',
+    from_item_id: 'item_headphone',
+    to_item_id: 'item_books',
+    status: ExchangeStatus.COMPLETED,
+    message: '耳机换设计书，交换顺利。',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 30).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
+  },
 ];
 
 export const exchangeApi = {

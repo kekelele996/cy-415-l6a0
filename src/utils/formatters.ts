@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 
 import { ExchangeStatus } from '@/constants/exchange';
 import { ItemCondition, ItemStatus } from '@/constants/item';
+import { REVIEW_CREDIT_DELTA } from '@/constants/review';
 import { STATUS_MESSAGE_MAP } from '@/constants/messages';
 
 export const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm');
@@ -50,3 +51,13 @@ export const statusToneClass = (status: ItemStatus | ExchangeStatus) => {
 };
 
 export const formatStatusMessage = (status: ItemStatus | ExchangeStatus) => STATUS_MESSAGE_MAP[status];
+
+// 星级文本（1~5 星）。
+export const formatRating = (rating: number) => `${'★'.repeat(rating)}${'☆'.repeat(5 - rating)}`;
+
+// 星级对信用分影响的可读文本：+3 / +1 / ±0 / -1 / -3。
+export const formatCreditDelta = (rating: number) => {
+  const delta = REVIEW_CREDIT_DELTA[rating] ?? 0;
+  if (delta > 0) return `+${delta}`;
+  return delta === 0 ? '±0' : `${delta}`;
+};

@@ -1,5 +1,6 @@
 import { del, get, set } from 'idb-keyval';
 
+import { runWithLock } from './lock';
 import type { PersistedEnvelope } from '@/types';
 
 const STORAGE_VERSION = 1;
@@ -12,6 +13,7 @@ export const STORAGE_KEYS = {
   users: prefixed('users'),
   items: prefixed('items'),
   exchanges: prefixed('exchanges'),
+  reviews: prefixed('reviews'),
   theme: prefixed('theme'),
   lastClean: prefixed('last-clean'),
 };
@@ -80,6 +82,77 @@ export const storage = {
   async remove(key: string): Promise<void> {
     localStorage.removeItem(key);
     await del(key);
+  },
+
+  // 在跨标签页锁内对多个 key 执行读-改-写。
+  // 任务体内只能通过返回的 reader 读取数据，并返回每个 key 的最终值。
+  // reader 一律返回快照的深拷贝，任务体内的任何修改都不会污染回滚基线；
+  // 任一步失败或没有拿到全部结果，则恢复所有快照，保证多 key “要么一起成功，要么全部不变”。
+  async transaction<TKeys extends string, TResult>(
+    lockKey: string,
+    keys: readonly TKeys[],
+    task: (reader: (key: TKeys) => Promise<unknown>) => Promise<{ result: TResult; writes: Partial<Record<TKeys, unknown>> }>,
+  ): Promise<TResult> {
+    return runWithLock(lockKey, async () => {
+      const snapshots = new Map<TKeys, unknown>();
+      for (const key of keys) {
+        snapshots.set(key, await this.get<unknown>(key, null));
+      }
+
+      const reader = async (key: TKeys): Promise<unknown> => toPlain(snapshots.get(key) ?? null);
+
+      let outcome: { result: TResult; writes: Partial<Record<TKeys, unknown>> };
+      try {
+        outcome = await task(reader);
+      } catch (error) {
+        await this.restoreSnapshots(keys, snapshots);
+        throw error;
+      }
+
+      // 先写 localStorage：任一 key 抛异常（如配额不足）都立即回滚，不动 IndexedDB。
+      try {
+        for (const key of keys) {
+          if (Object.prototype.hasOwnProperty.call(outcome.writes, key)) {
+            writeLocal(key, outcome.writes[key]);
+          }
+        }
+      } catch (error) {
+        await this.restoreSnapshots(keys, snapshots);
+        throw error;
+      }
+
+      // 再写 IndexedDB：逐个写入，失败则整笔回滚（localStorage 与 IndexedDB 都恢复快照）。
+      try {
+        for (const key of keys) {
+          if (Object.prototype.hasOwnProperty.call(outcome.writes, key)) {
+            await set(key, envelope(outcome.writes[key]));
+          }
+        }
+      } catch (error) {
+        await this.restoreSnapshots(keys, snapshots);
+        throw error;
+      }
+
+      return outcome.result;
+    });
+  },
+
+  async restoreSnapshots<TKeys extends string>(keys: readonly TKeys[], snapshots: Map<TKeys, unknown>): Promise<void> {
+    await Promise.all(
+      keys.map(async (key) => {
+        const snapshot = snapshots.get(key);
+        if (snapshot === null || snapshot === undefined) {
+          await this.remove(key);
+          return;
+        }
+        try {
+          localStorage.setItem(key, JSON.stringify(envelope(snapshot)));
+        } catch {
+          // localStorage 回写失败时仍尽力恢复 IndexedDB。
+        }
+        await set(key, envelope(snapshot));
+      }),
+    );
   },
 
   async cleanExpired(): Promise<void> {

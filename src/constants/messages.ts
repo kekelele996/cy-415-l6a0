@@ -8,6 +8,18 @@ export const PAGE_MESSAGES = {
   profileUpdated: '个人资料已更新',
 };
 
+export const REVIEW_MESSAGES = {
+  reviewSubmitted: '评价已提交，对方评价后双方内容将同时公开',
+  reviewRevealed: '双方均已评价，两条评价已同时公开，信用分已更新',
+  reviewFailed: '评价提交失败，请稍后重试',
+  reviewWaiting: '你已评价，等待对方提交后公开内容',
+  reviewPending: '交换已完成，请给对方本次交换打星并选择标签',
+  reviewReadOnly: '本次交换评价已公开',
+  ratingRequired: '请先选择 1~5 星',
+  tagRequired: '请至少选择一个评价标签',
+  reviewUnavailable: '仅交换参与者本人可在交换完成后评价',
+};
+
 export const FORM_MESSAGES = {
   requiredTitle: '物品标题不能为空',
   requiredDescription: '请描述你希望交换的物品',
