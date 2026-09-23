@@ -17,6 +17,7 @@ ReSwap 是一个纯前端以物换物 Web 应用。用户可以本地模拟登�
 - 物品详情、物主资料、选择自己的物品发起交换。
 - 发布物品，支持本地 base64 图片上传、分类和成色选择。
 - 交换管理，区分我发起的和我收到的请求，支持同意、拒绝、完成。
+- 双方互评：已完成交换的双方各评一次（1-5 星 + 标签），对象固定为对方；双方都提交后评价同时公开，信用分按星级联动（+3/+1/0/-1/-3，限制 0-100），每笔仅可评价一次。
 - 个人中心，编辑资料、上传头像、查看我发布的物品。
 - 主题切换、全局错误处理和 Vant 提示。
 
@@ -49,20 +50,30 @@ pnpm build
 
 ```text
 src/
-├── api/              # userApi.ts, itemApi.ts, exchangeApi.ts：本地数据 API 层
-├── stores/           # authStore.ts, itemStore.ts, exchangeStore.ts, themeStore.ts
-├── models/           # user.ts, item.ts, exchange.ts：独立数据模型
+├── api/              # userApi.ts, itemApi.ts, exchangeApi.ts, reviewApi.ts：本地数据 API 层
+├── stores/           # authStore.ts, itemStore.ts, exchangeStore.ts, reviewStore.ts, themeStore.ts
+├── models/           # user.ts, item.ts, exchange.ts, review.ts：独立数据模型
 ├── types/            # 共享类型补充
-├── components/common/# 共享业务组件和 GlobalErrorBoundary
+├── components/common/# 共享业务组件（含 StarRating、ReviewDialog、ReviewCard、ExchangeReviewSummary 等）和 GlobalErrorBoundary
 ├── hooks/            # useAuth.ts, useLocalStorage.ts, useExchangeStats.ts
 ├── pages/            # Home, ItemDetail, Publish, Exchanges, Profile
 ├── router/           # index.ts + guards.ts
-├── utils/            # storage.ts, formatters.ts, validators.ts, message.ts, themeUtils.ts
-├── constants/        # item.ts, exchange.ts, themes.ts, messages.ts
+├── utils/            # storage.ts, formatters.ts, validators.ts, message.ts, themeUtils.ts, reviewVisibility.ts
+├── constants/        # item.ts, exchange.ts, review.ts, themes.ts, messages.ts
 ├── App.vue
 ├── main.ts
 └── styles.css
 ```
+
+## 双方互评与一致性保证
+
+交换「已完成」后，双方各可评价一次：
+
+- 提交内容：1 至 5 星 + 1 至 3 个标签；仅参与者本人可提交，被评价对象固定为对方（由交换记录推导，客户端不可指定）。
+- 公开规则：单方提交时本人显示「已评价」并可看自己的内容，对方看不到；双方都提交后两条评价同时公开。
+- 信用分联动：5 星 +3、4 星 +1、3 星 0、2 星 −1、1 星 −3，结果限制在 0-100（`clampCreditScore`）。
+- 每笔只改一次：`api/reviewApi.ts` 对每个 exchange 使用内存串行锁 + 临界区内重复校验，重复点击、并发调用、刷新重放都不会产生第二条写入或重复加减分。
+- 原子提交：评价写入与对方信用分更新通过 `storage.commitAll` 一次提交，任一键失败则整批回滚，保证「评价、公开状态、信用分要么一起成功，要么全部不变」。
 
 ## 数据持久化说明
 

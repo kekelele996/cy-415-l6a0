@@ -52,6 +52,30 @@ const seedItems: Item[] = [
     location: '杭州 · 西湖',
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 90).toISOString(),
   },
+  {
+    id: 'item_speaker',
+    user_id: 'user_me',
+    title: '闲置蓝牙小音箱',
+    description: '音质正常，外观无磕碰，已用于一次完成的交换。',
+    category: '数码',
+    condition: ItemCondition.GOOD,
+    images: [],
+    status: ItemStatus.EXCHANGED,
+    location: '上海 · 徐汇',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 120).toISOString(),
+  },
+  {
+    id: 'item_plant',
+    user_id: 'user_chen',
+    title: '龟背竹盆栽一盆',
+    description: '养了一年，长势好，连盆送出。已用于一次完成的交换。',
+    category: '家居',
+    condition: ItemCondition.LIKE_NEW,
+    images: [],
+    status: ItemStatus.EXCHANGED,
+    location: '苏州 · 工业园',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 121).toISOString(),
+  },
 ];
 
 export const itemApi = {

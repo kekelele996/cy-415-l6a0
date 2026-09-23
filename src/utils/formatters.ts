@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 
 import { ExchangeStatus } from '@/constants/exchange';
 import { ItemCondition, ItemStatus } from '@/constants/item';
+import { REVIEW_MAX_RATING, REVIEW_RATING_CREDIT_DELTA } from '@/constants/review';
 import { STATUS_MESSAGE_MAP } from '@/constants/messages';
 
 export const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm');
@@ -41,6 +42,25 @@ export const formatCreditLevel = (score: number) => {
   if (score >= 60) return '新晋用户';
   return '需谨慎';
 };
+
+export const RATING_TEXT_MAP: Record<number, string> = {
+  1: '非常差',
+  2: '不满意',
+  3: '一般',
+  4: '满意',
+  5: '非常满意',
+};
+
+export const formatRatingText = (rating: number) => RATING_TEXT_MAP[rating] ?? '';
+
+/** 星级对应的信用分变动文案，如「信用 +3」「信用 -1」「信用 +0」 */
+export const formatCreditDelta = (rating: number) => {
+  const delta = REVIEW_RATING_CREDIT_DELTA[rating] ?? 0;
+  return `信用 ${delta > 0 ? '+' : ''}${delta}`;
+};
+
+export const ratingStars = (rating: number) =>
+  Array.from({ length: REVIEW_MAX_RATING }, (_, index) => index < rating);
 
 export const statusToneClass = (status: ItemStatus | ExchangeStatus) => {
   if (status === ItemStatus.AVAILABLE || status === ExchangeStatus.ACCEPTED) return 'status-good';

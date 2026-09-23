@@ -17,6 +17,17 @@ const seedExchanges: Exchange[] = [
     created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
     updated_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
   },
+  {
+    id: 'exchange_done_seed',
+    from_user_id: 'user_me',
+    to_user_id: 'user_chen',
+    from_item_id: 'item_speaker',
+    to_item_id: 'item_plant',
+    status: ExchangeStatus.COMPLETED,
+    message: '蓝牙音箱换龟背竹，交换很顺利。',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+  },
 ];
 
 export const exchangeApi = {

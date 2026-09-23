@@ -35,6 +35,7 @@
         @accept="exchangeStore.accept"
         @reject="exchangeStore.reject"
         @complete="completeExchange"
+        @review="openReview"
       />
     </div>
     <EmptyState
@@ -42,6 +43,14 @@
       title="暂无交换请求"
       :description="PAGE_MESSAGES.exchangeEmpty"
       mark="换"
+    />
+
+    <ReviewDialog
+      :visible="reviewDialogVisible"
+      :target-name="reviewTargetName"
+      :submitting="reviewStore.submitting"
+      @cancel="reviewDialogVisible = false"
+      @submit="submitReview"
     />
   </section>
 </template>
@@ -51,16 +60,20 @@ import { computed, ref } from 'vue';
 
 import EmptyState from '@/components/common/EmptyState.vue';
 import ExchangeCard from '@/components/common/ExchangeCard.vue';
+import ReviewDialog from '@/components/common/ReviewDialog.vue';
 import { EXCHANGE_STATUS_OPTIONS, ExchangeStatus } from '@/constants/exchange';
 import { PAGE_MESSAGES } from '@/constants/messages';
 import { useExchangeStats } from '@/hooks/useExchangeStats';
+import type { ExchangeReviewDraft } from '@/models/review';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
+import { useReviewStore } from '@/stores/reviewStore';
 
 const authStore = useAuthStore();
 const itemStore = useItemStore();
 const exchangeStore = useExchangeStore();
+const reviewStore = useReviewStore();
 const tab = ref<'sent' | 'received'>('sent');
 
 const mine = computed(() => {
@@ -72,6 +85,32 @@ const mine = computed(() => {
 });
 const visibleExchanges = computed(() => mine.value);
 const stats = useExchangeStats(() => exchangeStore.exchanges);
+
+const reviewDialogVisible = ref(false);
+const activeReviewId = ref('');
+const activeReviewExchange = computed(() =>
+  exchangeStore.exchanges.find((item) => item.id === activeReviewId.value),
+);
+const reviewTargetName = computed(() => {
+  const exchange = activeReviewExchange.value;
+  if (!exchange || !authStore.currentUser) return '对方';
+  const targetId =
+    exchange.from_user_id === authStore.currentUser.id ? exchange.to_user_id : exchange.from_user_id;
+  return authStore.users.find((user) => user.id === targetId)?.nickname ?? '对方';
+});
+
+const openReview = (id: string) => {
+  activeReviewId.value = id;
+  reviewDialogVisible.value = true;
+};
+
+const submitReview = async (draft: ExchangeReviewDraft) => {
+  const exchange = activeReviewExchange.value;
+  if (!exchange || !authStore.currentUser) return;
+  const ok = await reviewStore.submit(exchange, draft);
+  // 仅在真正提交成功时关闭弹窗；重复 / 并发提交在 API 层被拦截，不会多写
+  if (ok) reviewDialogVisible.value = false;
+};
 
 const completeExchange = async (id: string) => {
   await exchangeStore.complete(id);

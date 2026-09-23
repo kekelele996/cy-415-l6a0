@@ -17,6 +17,14 @@
       </div>
     </div>
     <p>{{ exchange.message || formatStatusMessage(exchange.status) }}</p>
+    <ExchangeReviewSummary
+      v-if="exchange.status === ExchangeStatus.COMPLETED && authStore.currentUser"
+      :exchange="exchange"
+      :pair="reviewStore.pairFor(exchange)"
+      :users="users"
+      :current-user-id="authStore.currentUser.id"
+      @review="$emit('review', exchange.id)"
+    />
     <footer>
       <span v-if="fromUser && toUser">{{ fromUser.nickname }} → {{ toUser.nickname }}</span>
       <div v-if="canOperate" class="exchange-card__actions">
@@ -37,11 +45,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import ExchangeReviewSummary from '@/components/common/ExchangeReviewSummary.vue';
 import { ExchangeStatus } from '@/constants/exchange';
 import type { Exchange } from '@/models/exchange';
 import type { Item } from '@/models/item';
 import type { User } from '@/models/user';
 import { useAuthStore } from '@/stores/authStore';
+import { useReviewStore } from '@/stores/reviewStore';
 import { formatDate, formatExchangeStatus, formatStatusMessage, statusToneClass } from '@/utils/formatters';
 
 const props = defineProps<{
@@ -54,9 +64,11 @@ defineEmits<{
   accept: [id: string];
   reject: [id: string];
   complete: [id: string];
+  review: [id: string];
 }>();
 
 const authStore = useAuthStore();
+const reviewStore = useReviewStore();
 const fromItem = computed(() => props.items.find((item) => item.id === props.exchange.from_item_id));
 const toItem = computed(() => props.items.find((item) => item.id === props.exchange.to_item_id));
 const fromUser = computed(() => props.users.find((user) => user.id === props.exchange.from_user_id));
